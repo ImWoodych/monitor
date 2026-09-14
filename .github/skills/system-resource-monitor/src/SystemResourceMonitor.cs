@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -397,18 +398,18 @@ internal static class SystemResourceMonitor
         try
         {
             var processes = new List<ProcessInfo>();
-            using (var searcher = new ManagementObjectSearcher("SELECT Name, WorkingSet64 FROM Win32_Process"))
+            Process[] systemProcesses = Process.GetProcesses();
+            foreach (Process proc in systemProcesses)
             {
-                foreach (var obj in searcher.Get())
+                try
                 {
-                    string name = obj["Name"] != null ? obj["Name"].ToString() : "Unknown";
-                    ulong workingSet = 0;
-                    object workingSetObj = obj["WorkingSet64"];
-                    if (workingSetObj != null)
-                    {
-                        workingSet = Convert.ToUInt64(workingSetObj);
-                    }
+                    string name = proc.ProcessName;
+                    ulong workingSet = (ulong)proc.WorkingSet64;
                     processes.Add(new ProcessInfo { Name = name, RamBytes = workingSet });
+                }
+                catch
+                {
+                    // Process may have exited or be inaccessible
                 }
             }
 
@@ -460,18 +461,18 @@ internal static class SystemResourceMonitor
             try
             {
                 var processes = new List<ProcessInfo>();
-                using (var searcher = new ManagementObjectSearcher("SELECT Name, WorkingSet64 FROM Win32_Process"))
+                Process[] systemProcesses = Process.GetProcesses();
+                foreach (Process proc in systemProcesses)
                 {
-                    foreach (var obj in searcher.Get())
+                    try
                     {
-                        string name = obj["Name"] != null ? obj["Name"].ToString() : "Unknown";
-                        ulong workingSet = 0;
-                        object workingSetObj = obj["WorkingSet64"];
-                        if (workingSetObj != null)
-                        {
-                            workingSet = Convert.ToUInt64(workingSetObj);
-                        }
+                        string name = proc.ProcessName;
+                        ulong workingSet = (ulong)proc.WorkingSet64;
                         processes.Add(new ProcessInfo { Name = name, RamBytes = workingSet });
+                    }
+                    catch
+                    {
+                        // Process may have exited or be inaccessible
                     }
                 }
 
